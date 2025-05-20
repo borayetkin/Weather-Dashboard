@@ -79,4 +79,3 @@ This project is licensed under the MIT License.
 
 - [OpenWeatherMap](https://openweathermap.org/) for providing the weather data API
 - [Next.js](https://nextjs.org/) documentation and community
->>>>>>> e8020cb (Initial commit: Weather Dashboard MVP)
