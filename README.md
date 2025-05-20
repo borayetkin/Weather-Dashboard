@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Weather-Dashboard
-=======
 # Weather Dashboard
 
 A real-time weather dashboard application built with Next.js, TypeScript, and Tailwind CSS. This application allows users to search for weather data by city name, displays current weather conditions, and maintains a search history.
