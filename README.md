@@ -1,85 +1,118 @@
-<<<<<<< HEAD
-# Weather-Dashboard
-=======
 # Weather Dashboard
 
-A real-time weather dashboard application built with Next.js, TypeScript, and Tailwind CSS. This application allows users to search for weather data by city name, displays current weather conditions, and maintains a search history.
+A responsive weather application built with Next.js, React Query, and Zustand that lets users search for weather information by city name. The app displays current weather conditions and a 5-day forecast.
 
 ## Features
 
-- Search for weather data by city name
-- Display current weather conditions including:
-  - Temperature (Celsius)
-  - Weather description with icon
-  - Humidity
-  - Wind speed
-- Recent searches history (last 5 searches)
+- Search for any city to get current weather data
+- View 5-day weather forecast
+- Toggle between Celsius and Fahrenheit
+- Search history that persists between sessions
 - Responsive design for mobile, tablet, and desktop
-- Error handling for invalid searches or API failures
+- Beautiful UI with dynamic backgrounds based on weather conditions
 
-## Tech Stack
-
-- Next.js 14+
-- TypeScript
-- Tailwind CSS
-- Axios for API requests
-- OpenWeatherMap API
-
-## Getting Started
+## Setup & Running the Project
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- OpenWeatherMap API key (free tier available)
+- Node.js (v16 or newer)
+- npm or yarn
 
 ### Installation
 
-1. Clone the repository:
+1. Clone this repository
 
-   ```bash
-   git clone <repository-url>
-   ```
+```
+git clone https://github.com/yourusername/Weather-Dashboard.git
+cd Weather-Dashboard
+```
 
-2. Navigate to the project directory:
+2. Install dependencies
 
-   ```bash
-   cd weather-dashboard
-   ```
+```
+npm install
+# or
+yarn install
+```
 
-3. Install dependencies:
+3. Create a `.env.local` file in the root directory and add your OpenWeatherMap API key:
 
-   ```bash
-   npm install
-   ```
+```
+NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key_here
+```
 
-4. Create a `.env.local` file in the root directory with your OpenWeatherMap API key:
+### Getting an API Key
 
-   ```
-   NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key_here
-   ```
+1. Visit [OpenWeatherMap](https://openweathermap.org/) and create a free account
+2. Navigate to the "API Keys" section in your account dashboard
+3. Generate a new API key (the free tier is sufficient for this project)
+4. Copy the key to your `.env.local` file
 
-5. Start the development server:
+### Running the Application
 
-   ```bash
-   npm run dev
-   ```
+Development mode:
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+```
+npm run dev
+# or
+yarn dev
+```
 
-## Future Enhancements
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
 
-- Toggle between Celsius and Fahrenheit units
-- 5-day weather forecast
-- State management with Redux Toolkit or Zustand
-- Data fetching with React Query or SWR
-- Additional weather details and visualizations
+Build for production:
+
+```
+npm run build
+npm start
+# or
+yarn build
+yarn start
+```
+
+## Technology Stack
+
+- **Frontend**: Next.js 14 with React 18
+- **State Management**: Zustand
+- **Data Fetching**: React Query
+- **Styling**: Tailwind CSS
+- **TypeScript**: For type safety
+- **API**: OpenWeatherMap
+
+## Project Structure
+
+- `src/app`: Next.js page components
+- `src/components`: Reusable UI components
+- `src/hooks`: Custom React hooks
+- `src/store`: Zustand store configuration
+- `src/types`: TypeScript type definitions
+- `src/utils`: Utility functions
+
+## Assumptions and Design Decisions
+
+### Weather Data
+
+- I focused on the most commonly searched weather metrics (temperature, humidity, wind)
+- For the 5-day forecast, I display one data point per day rather than every 3-hour interval
+
+### User Experience
+
+- I used city suggestions to help users find cities faster
+- The app remembers the last 5 searches to make it easier to check weather for common locations
+- Weather backgrounds change based on conditions to give visual cues about the weather
+
+### Technical Choices
+
+- Zustand was chosen over Redux for its simplicity and smaller bundle size
+- React Query handles all data fetching to make caching and refetching easier
+- I stored minimal data in localStorage to keep the app responsive
+
+### Design Approach
+
+- Mobile-first design with breakpoints for tablet and desktop
+- Used a dark theme with weather-appropriate accents for better readability
+- Focused on accessible design with proper contrast and keyboard navigation
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Acknowledgments
-
-- [OpenWeatherMap](https://openweathermap.org/) for providing the weather data API
-- [Next.js](https://nextjs.org/) documentation and community
->>>>>>> e8020cb (Initial commit: Weather Dashboard MVP)
+MIT

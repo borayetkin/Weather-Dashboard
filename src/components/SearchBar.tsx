@@ -12,26 +12,43 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const suggestionClickedRef = useRef(false);
+
+  // Force hide dropdown regardless of state
+  const forceHideDropdown = useCallback(() => {
+    setShowSuggestions(false);
+    setSuggestions([]);
+    suggestionClickedRef.current = true;
+
+    // Extra safeguard - force DOM update
+    if (suggestionsRef.current) {
+      suggestionsRef.current.style.display = "none";
+    }
+  }, []);
 
   // Memoize the search function to prevent recreation
   const handleSearch = useCallback(
     (searchCity: string) => {
       if (searchCity.trim()) {
-        // Immediately hide suggestions first
-        setShowSuggestions(false);
-        // Clear suggestions array to ensure no rendering happens
-        setSuggestions([]);
-        // Set the city value
+        // Force hide dropdown first
+        forceHideDropdown();
+
+        // Then set city and trigger search
         setCity(searchCity);
-        // Execute search
         onSearch(searchCity.trim());
       }
     },
-    [onSearch]
+    [onSearch, forceHideDropdown]
   );
 
   // Update suggestions when city input changes
   useEffect(() => {
+    // Skip suggestion updates if a suggestion was just clicked
+    if (suggestionClickedRef.current) {
+      suggestionClickedRef.current = false;
+      return;
+    }
+
     const updateSuggestions = () => {
       if (city.trim().length >= 1) {
         const cityMatches = getSuggestions(city);
@@ -61,9 +78,20 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
       }
     }
 
+    // Global click handler to ensure dropdown is hidden
+    function globalClickHandler() {
+      if (suggestionClickedRef.current) {
+        setShowSuggestions(false);
+        suggestionClickedRef.current = false;
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", globalClickHandler);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", globalClickHandler);
     };
   }, []);
 
@@ -73,8 +101,16 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    // Use the memoized search function to ensure consistent behavior
-    handleSearch(suggestion);
+    // Mark that a suggestion was clicked to prevent dropdown from showing again
+    suggestionClickedRef.current = true;
+
+    // Force hide dropdown
+    forceHideDropdown();
+
+    // Use the memoized search function with a slight delay to ensure UI updates first
+    window.requestAnimationFrame(() => {
+      handleSearch(suggestion);
+    });
   };
 
   return (
@@ -103,6 +139,9 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             onFocus={() => {
+              // Reset suggestion clicked flag
+              suggestionClickedRef.current = false;
+
               // Only show suggestions if there's input text
               if (city.trim().length >= 1) {
                 const cityMatches = getSuggestions(city);
@@ -110,11 +149,21 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
                 setShowSuggestions(cityMatches.length > 0);
               }
             }}
+            onBlur={() => {
+              // Add slight delay to allow click events to process
+              setTimeout(() => {
+                if (suggestionClickedRef.current) {
+                  setShowSuggestions(false);
+                }
+              }, 150);
+            }}
             placeholder="Search city..."
             className="w-full px-3 py-3 focus:outline-none text-white placeholder-gray-300/90 bg-transparent font-medium"
             disabled={isLoading}
             autoComplete="off"
             aria-label="Search for a city"
+            aria-expanded={showSuggestions}
+            aria-controls="suggestions-list"
           />
           <button
             type="submit"
@@ -136,6 +185,7 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
             ref={suggestionsRef}
             className="absolute z-10 w-full mt-1 bg-gray-800/95 backdrop-blur-lg rounded-lg shadow-xl max-h-60 overflow-auto border border-gray-600/30 animate-fadeIn"
             role="listbox"
+            id="suggestions-list"
             aria-label="City suggestions"
           >
             <ul className="py-1">
@@ -143,14 +193,20 @@ export default function SearchBar({ onSearch, isLoading }: SearchBarProps) {
                 <li
                   key={index}
                   className="px-4 py-3 hover:bg-indigo-500/30 cursor-pointer flex items-center text-gray-100 border-b border-gray-700/30 last:border-0 transition-all duration-150"
-                  onClick={() => handleSuggestionClick(suggestion)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    e.preventDefault();
+                    handleSuggestionClick(suggestion);
+                  }}
                   role="option"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
+                      e.preventDefault();
                       handleSuggestionClick(suggestion);
                     }
                   }}
+                  aria-selected={false}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
