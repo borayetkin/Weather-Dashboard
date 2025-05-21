@@ -1,66 +1,100 @@
 import { SearchHistoryItem } from "../types/weather";
+import { removeFromSearchHistory } from "../utils/weatherUtils";
+import { useState } from "react";
 
 interface SearchHistoryProps {
   history: SearchHistoryItem[];
   onSelectCity: (city: string) => void;
+  setSearchHistory: React.Dispatch<React.SetStateAction<SearchHistoryItem[]>>;
 }
 
 export default function SearchHistory({
   history,
   onSelectCity,
+  setSearchHistory,
 }: SearchHistoryProps) {
-  if (!history.length) return null;
+  const handleDeleteHistory = (timestamp: number) => {
+    // Delete immediately
+    const newHistory = removeFromSearchHistory(timestamp);
+    setSearchHistory(newHistory);
+  };
 
   return (
-    <div className="w-full max-w-md mt-6">
-      <h3 className="text-md font-medium text-gray-700 mb-3 flex items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 mr-2 text-gray-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        Recent Searches
-      </h3>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <ul className="divide-y divide-gray-100">
+    <div>
+      <div className="flex items-center mb-4">
+        <h2 className="text-lg font-medium">Search History</h2>
+        {history.length > 0 && (
+          <button
+            className="ml-auto text-xs text-gray-300 hover:text-gray-100 bg-gray-700/40 hover:bg-gray-700/60 px-2 py-1 rounded-md transition-colors"
+            onClick={() => {
+              localStorage.removeItem("weatherSearchHistory");
+              setSearchHistory([]);
+            }}
+          >
+            Clear All
+          </button>
+        )}
+      </div>
+
+      {history.length > 0 ? (
+        <ul className="space-y-2">
           {history.map((item) => (
             <li
               key={item.timestamp}
-              className="hover:bg-gray-50 transition-colors duration-150"
+              className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600/50 hover:bg-gray-700/70 transition-colors"
             >
               <button
+                className="flex-grow text-left flex items-center hover:text-blue-300 transition-colors truncate mr-2"
                 onClick={() => onSelectCity(item.city)}
-                className="w-full px-4 py-3 text-left text-gray-800 flex items-center"
               >
-                <span className="flex-1 font-medium">{item.city}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                  />
-                </svg>
+                <span className="font-medium truncate">{item.city}</span>
               </button>
+              <div className="flex items-center">
+                <button
+                  className="text-xs p-1 rounded-md transition-colors bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white"
+                  onClick={() => handleDeleteHistory(item.timestamp)}
+                  title="Delete from history"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </li>
           ))}
         </ul>
-      </div>
+      ) : (
+        <div className="text-center py-6 bg-gray-700/30 rounded-lg border border-gray-600/30">
+          <svg
+            className="w-12 h-12 mx-auto text-gray-500 mb-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p className="text-gray-400 text-sm">No search history yet</p>
+          <p className="text-gray-500 text-xs mt-1">
+            Your recent searches will appear here
+          </p>
+        </div>
+      )}
     </div>
   );
 }

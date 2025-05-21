@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# Weather-Dashboard
+=======
 # Weather Dashboard
 
 A real-time weather dashboard application built with Next.js, TypeScript, and Tailwind CSS. This application allows users to search for weather data by city name, displays current weather conditions, and maintains a search history.
@@ -66,5 +69,17 @@ A real-time weather dashboard application built with Next.js, TypeScript, and Ta
 ## Future Enhancements
 
 - Toggle between Celsius and Fahrenheit units
+- 5-day weather forecast
+- State management with Redux Toolkit or Zustand
 - Data fetching with React Query or SWR
 - Additional weather details and visualizations
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- [OpenWeatherMap](https://openweathermap.org/) for providing the weather data API
+- [Next.js](https://nextjs.org/) documentation and community
+>>>>>>> e8020cb (Initial commit: Weather Dashboard MVP)

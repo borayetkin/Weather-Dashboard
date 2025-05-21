@@ -11,11 +11,11 @@ export default function ErrorDisplay({
 
   return (
     <div className="w-full max-w-md mt-4">
-      <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-4 relative shadow-sm animate-fadeIn">
+      <div className="bg-gray-800/90 border-l-4 border-orange-500 rounded-lg p-4 relative shadow-sm animate-fadeIn">
         <div className="flex">
           <div className="flex-shrink-0">
             <svg
-              className="h-5 w-5 text-red-400"
+              className="h-5 w-5 text-orange-400"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
@@ -29,11 +29,11 @@ export default function ErrorDisplay({
             </svg>
           </div>
           <div className="ml-3 mr-7">
-            <p className="text-sm text-red-700 font-medium">{message}</p>
+            <p className="text-sm text-gray-300 font-medium">{message}</p>
           </div>
           <button
             onClick={onDismiss}
-            className="absolute top-4 right-4 text-red-400 hover:text-red-500 transition-colors"
+            className="absolute top-4 right-4 text-gray-400 hover:text-orange-400 transition-colors"
             title="Dismiss"
           >
             <span className="sr-only">Dismiss</span>
