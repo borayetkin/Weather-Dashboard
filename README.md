@@ -112,7 +112,3 @@ yarn start
 - Mobile-first design with breakpoints for tablet and desktop
 - Used a dark theme with weather-appropriate accents for better readability
 - Focused on accessible design with proper contrast and keyboard navigation
-
-## License
-
-MIT
