@@ -1,8 +1,8 @@
 import axios from "axios";
 import { WeatherData, SearchHistoryItem, ForecastData } from "../types/weather";
 
-// Using the provided API key
-const API_KEY = "bd6803e869b0f8765b9a1b9b2ea147aa";
+// Using the API key from environment variable
+const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
 const API_URL = "https://api.openweathermap.org/data/2.5";
 
 // Extended city database - this is an expanded dataset to simulate a more comprehensive API

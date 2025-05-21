@@ -1,93 +1,95 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import SearchBar from "../components/SearchBar";
 import WeatherDisplay from "../components/WeatherDisplay";
 import SearchHistory from "../components/SearchHistory";
 import ErrorDisplay from "../components/ErrorDisplay";
 import ForecastDisplay from "../components/ForecastDisplay";
-import {
-  fetchWeatherData,
-  getSearchHistory,
-  saveSearchToHistory,
-  fetchForecastData,
-  processForecastData,
-} from "../utils/weatherUtils";
-import {
-  WeatherData,
-  SearchHistoryItem,
-  DailyForecast,
-} from "../types/weather";
+import { useWeatherStore } from "../store/weatherStore";
+import { useWeatherAndForecast } from "../hooks/useWeatherQueries";
 
 export default function Home() {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [forecastData, setForecastData] = useState<DailyForecast[]>([]);
-  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [isMetric, setIsMetric] = useState(true);
+  // State to track current search
+  const [currentCity, setCurrentCity] = useState<string | null>(null);
 
-  // Load search history from localStorage on component mount
-  useEffect(() => {
-    setSearchHistory(getSearchHistory());
-  }, []);
+  // Get only what we need from Zustand store
+  const isMetric = useWeatherStore((state) => state.isMetric);
+  const toggleTemperatureUnit = useWeatherStore(
+    (state) => state.toggleTemperatureUnit
+  );
+  const searchHistory = useWeatherStore((state) => state.searchHistory);
+  const addToSearchHistory = useWeatherStore(
+    (state) => state.addToSearchHistory
+  );
+  const clearSearchHistory = useWeatherStore(
+    (state) => state.clearSearchHistory
+  );
+  const setError = useWeatherStore((state) => state.setError);
+  const error = useWeatherStore((state) => state.error);
 
-  const handleSearch = async (city: string) => {
-    setError("");
-    setIsLoading(true);
+  // Query client for manual invalidation
+  const queryClient = useQueryClient();
 
-    try {
-      // Fetch both current weather and forecast data
-      const weatherDataPromise = fetchWeatherData(city);
-      const forecastDataPromise = fetchForecastData(city);
+  // Use React Query directly without copying to Zustand store
+  const {
+    weatherData,
+    forecastData,
+    isLoading,
+    error: fetchError,
+    refetch,
+  } = useWeatherAndForecast(currentCity);
 
-      // Wait for both requests to complete
-      const [weatherResult, forecastResult] = await Promise.all([
-        weatherDataPromise,
-        forecastDataPromise,
-      ]);
+  // Handle search with useCallback to prevent unnecessary rerenders
+  const handleSearch = useCallback(
+    (city: string) => {
+      // Reset error
+      setError("");
 
-      setWeatherData(weatherResult);
+      // Update current city
+      setCurrentCity(city);
 
-      // Process the forecast data into daily format
-      const processedForecast = processForecastData(forecastResult);
-      setForecastData(processedForecast);
+      // Add to search history if not empty
+      if (city.trim()) {
+        addToSearchHistory(city.trim());
+      }
 
-      // Save to search history
-      saveSearchToHistory(city);
-      setSearchHistory(getSearchHistory());
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      // Force refetch
+      queryClient.invalidateQueries({ queryKey: ["weather"] });
+      queryClient.invalidateQueries({ queryKey: ["forecast"] });
+    },
+    [addToSearchHistory, queryClient, setError]
+  );
 
-  // Toggle between Celsius and Fahrenheit
-  const toggleTemperatureUnit = () => {
-    setIsMetric(!isMetric);
-  };
+  // Show fetch error if it exists
+  if (fetchError && !error) {
+    const errorMessage =
+      fetchError instanceof Error
+        ? fetchError.message
+        : "An unknown error occurred";
+
+    setError(errorMessage);
+  }
 
   return (
-    <main className="min-h-screen bg-gray-700 relative overflow-hidden font-sans">
+    <main className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black relative overflow-hidden font-sans">
       {/* Decorative Background Elements */}
-      <div className="absolute top-24 left-12 w-64 h-64 bg-blue-300/30 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute top-36 right-12 w-72 h-72 bg-gray-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-56 h-56 bg-teal-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      <div className="absolute top-24 left-12 w-64 h-64 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-36 right-12 w-72 h-72 bg-indigo-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-56 h-56 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 md:px-8 relative">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-500">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 md:px-8 relative">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
             Weather Dashboard
           </h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Column - Search and History */}
-          <div className="lg:w-2/5 space-y-4">
-            <div className="bg-gradient-to-r from-blue-600 to-teal-600 rounded-xl p-6 shadow-lg h-[250px] flex flex-col">
+          <div className="lg:w-2/5 space-y-5">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 shadow-xl h-[250px] flex flex-col backdrop-blur-lg border border-blue-400/20">
               <div className="flex items-center mb-4">
                 <svg
                   className="w-10 h-10 text-white mr-3"
@@ -115,17 +117,17 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-gray-600/80 backdrop-blur-sm rounded-xl p-5 shadow-md border border-gray-500/50 text-white">
+            <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-5 shadow-xl border border-gray-700/50 text-white">
               <SearchHistory
                 history={searchHistory}
                 onSelectCity={handleSearch}
-                setSearchHistory={setSearchHistory}
+                setSearchHistory={clearSearchHistory}
               />
             </div>
           </div>
 
           {/* Right Column - Weather Display and Forecast */}
-          <div className="lg:w-3/5 space-y-4">
+          <div className="lg:w-3/5 space-y-5">
             {weatherData && !isLoading ? (
               <div className="animate-fadeIn">
                 <WeatherDisplay
@@ -135,7 +137,7 @@ export default function Home() {
                 />
               </div>
             ) : (
-              <div className="h-[250px] flex flex-col items-center justify-center p-6 bg-gray-600/80 backdrop-blur-sm rounded-xl border border-gray-500/50 shadow-md text-white">
+              <div className="h-[250px] flex flex-col items-center justify-center p-6 bg-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-700/50 shadow-xl text-white">
                 {isLoading ? (
                   <div className="flex flex-col items-center">
                     <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -147,7 +149,7 @@ export default function Home() {
                   <div className="flex flex-col items-center">
                     <div className="mb-6 relative">
                       <svg
-                        className="w-20 h-20 text-blue-400 animate-pulse"
+                        className="w-20 h-20 text-indigo-400 animate-pulse"
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -159,7 +161,7 @@ export default function Home() {
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <svg
-                          className="w-8 h-8 text-teal-200"
+                          className="w-8 h-8 text-blue-200"
                           fill="none"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -190,7 +192,7 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className="mt-8 text-center text-sm text-gray-400">
+        <footer className="mt-10 text-center text-sm text-gray-400">
           <p>
             Data provided by{" "}
             <a
